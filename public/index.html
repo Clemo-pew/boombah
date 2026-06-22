@@ -8,64 +8,64 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   :root{
-    --sfondo:#15171f; --pannello:#232634; --accento:#ef7d57;
-    --fiamma:#ffcd75; --testo:#f4f4f4; --player:#41a6f6;
+    --sfondo:#15171f; --pannello:#232634; --accento:#ef7d57; --fiamma:#ffcd75;
+    --testo:#f4f4f4; --erba:#3b7d4f; --erba2:#347046; --muro:#5a6178;
+    --muro-top:#767d96; --cassa:#b06b3a; --cassa-top:#c8814b; --fiamma2:#ef7d57;
   }
   *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   body{
     background:var(--sfondo); color:var(--testo);
     font-family:system-ui,-apple-system,sans-serif;
     min-height:100vh; display:flex; align-items:center; justify-content:center;
-    padding:24px; user-select:none;
+    padding:16px; user-select:none; touch-action:none; overflow:hidden;
   }
-  .schermata{ width:100%; max-width:380px; display:none; flex-direction:column; gap:18px; }
+  .schermata{ width:100%; max-width:400px; display:none; flex-direction:column; gap:16px; }
   .schermata.attiva{ display:flex; }
-
-  h1{ font-family:"Press Start 2P",monospace; font-size:18px; color:var(--accento);
-      text-align:center; line-height:1.7; margin-bottom:8px; }
-
-  input{
-    width:100%; padding:16px; font-size:16px; text-align:center;
-    background:var(--pannello); border:2px solid #3a3f54; border-radius:12px;
-    color:var(--testo); outline:none;
-  }
+  h1{ font-family:"Press Start 2P",monospace; font-size:18px; color:var(--accento); text-align:center; line-height:1.7; }
+  input{ width:100%; padding:15px; font-size:16px; text-align:center; background:var(--pannello);
+         border:2px solid #3a3f54; border-radius:12px; color:var(--testo); outline:none; }
   input:focus{ border-color:var(--accento); }
   #campoCodice{ font-family:"Press Start 2P",monospace; letter-spacing:6px; text-transform:uppercase; }
-
-  button{
-    width:100%; padding:16px; font-size:15px; font-weight:600;
-    border:none; border-radius:12px; color:#fff; background:#3a3f54;
-    box-shadow:0 4px 0 #20232f; transition:transform .05s, box-shadow .05s;
-  }
+  button{ width:100%; padding:15px; font-size:15px; font-weight:600; border:none; border-radius:12px;
+          color:#fff; background:#3a3f54; box-shadow:0 4px 0 #20232f; }
   button:active{ transform:translateY(3px); box-shadow:0 1px 0 #20232f; }
   button.primario{ background:var(--accento); color:#2a1206; box-shadow:0 4px 0 #b85535; }
-  button.primario:active{ box-shadow:0 1px 0 #b85535; }
   button:disabled{ opacity:.4; box-shadow:none; }
-
   .separatore{ text-align:center; opacity:.4; font-size:13px; }
   .errore{ color:#ff8080; text-align:center; font-size:14px; min-height:18px; }
-
-  /* --- Lobby --- */
-  .codiceGrande{
-    font-family:"Press Start 2P",monospace; font-size:40px; letter-spacing:8px;
-    color:var(--fiamma); text-align:center; padding:18px;
-    background:var(--pannello); border-radius:14px;
-  }
+  .codiceGrande{ font-family:"Press Start 2P",monospace; font-size:38px; letter-spacing:8px;
+                 color:var(--fiamma); text-align:center; padding:16px; background:var(--pannello); border-radius:14px; }
   .etichetta{ text-align:center; opacity:.6; font-size:13px; }
   .listaGiocatori{ display:flex; flex-direction:column; gap:10px; }
-  .giocatore{
-    display:flex; align-items:center; gap:12px; padding:14px 16px;
-    background:var(--pannello); border-radius:12px; font-size:15px;
-  }
-  .pallino{ width:14px; height:14px; border-radius:50%; background:var(--player); flex:none; }
+  .giocatore{ display:flex; align-items:center; gap:12px; padding:13px 16px; background:var(--pannello);
+              border-radius:12px; font-size:15px; }
+  .pallino{ width:14px; height:14px; border-radius:50%; flex:none; }
   .badgeHost{ margin-left:auto; font-size:11px; background:var(--accento); color:#2a1206;
               padding:3px 8px; border-radius:6px; font-weight:700; }
   .attesa{ text-align:center; opacity:.6; font-size:14px; }
+
+  /* --- Schermata di gioco --- */
+  #gioco{ max-width:520px; gap:10px; }
+  canvas{ width:100%; height:auto; image-rendering:pixelated; border-radius:8px;
+          box-shadow:0 10px 30px rgba(0,0,0,.5); background:var(--erba); }
+  #comandi{ display:flex; align-items:center; justify-content:space-between; padding:6px 4px; }
+  .dpad{ display:grid; grid-template-columns:repeat(3,56px); grid-template-rows:repeat(3,56px); gap:6px; }
+  .tasto{ width:56px; height:56px; background:#3a3f54; border-radius:12px; color:var(--testo);
+          font-size:20px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 0 #20232f; }
+  #su{ grid-column:2; grid-row:1; } #sx{ grid-column:1; grid-row:2; }
+  #dx{ grid-column:3; grid-row:2; } #giu{ grid-column:2; grid-row:3; }
+  #bomba{ width:90px; height:90px; border-radius:50%; background:var(--accento); color:#2a1206;
+          font-size:38px; box-shadow:0 6px 0 #b85535; }
+  #statoGioco{ text-align:center; font-size:13px; opacity:.7; min-height:16px; }
+  #fineGioco{ position:fixed; inset:0; background:rgba(10,11,16,.85); display:none;
+              flex-direction:column; align-items:center; justify-content:center; gap:20px; text-align:center; padding:20px; }
+  #fineGioco.mostra{ display:flex; }
+  #fineGioco h2{ font-family:"Press Start 2P",monospace; font-size:22px; line-height:1.6; }
 </style>
 </head>
 <body>
 
-  <!-- SCHERMATA 1: MENU -->
+  <!-- MENU -->
   <div class="schermata attiva" id="menu">
     <h1>BOMBER<br>MAN</h1>
     <input id="campoNome" placeholder="Il tuo nome" maxlength="12" value="Giocatore">
@@ -76,7 +76,7 @@
     <div class="errore" id="errore"></div>
   </div>
 
-  <!-- SCHERMATA 2: LOBBY -->
+  <!-- LOBBY -->
   <div class="schermata" id="lobby">
     <div class="etichetta">Codice della partita</div>
     <div class="codiceGrande" id="mostraCodice">----</div>
@@ -86,67 +86,154 @@
     <div class="attesa" id="attesa">In attesa dell'host…</div>
   </div>
 
-  <!-- SCHERMATA 3: GIOCO (la riempiremo al passo 2) -->
+  <!-- GIOCO -->
   <div class="schermata" id="gioco">
-    <h1>VIA!</h1>
-    <p class="attesa">La partita è iniziata.<br>Qui andrà il gioco vero e proprio:<br>lo costruiamo al prossimo passo!</p>
+    <canvas id="tela"></canvas>
+    <div id="statoGioco"></div>
+    <div id="comandi">
+      <div class="dpad">
+        <button class="tasto" id="su">▲</button>
+        <button class="tasto" id="sx">◀</button>
+        <button class="tasto" id="dx">▶</button>
+        <button class="tasto" id="giu">▼</button>
+      </div>
+      <button id="bomba">💣</button>
+    </div>
   </div>
 
-  <!-- Questa libreria viene fornita in automatico dal server Socket.IO -->
+  <!-- FINE PARTITA -->
+  <div id="fineGioco">
+    <h2 id="esito"></h2>
+    <button class="primario" id="tornaLobby" style="max-width:240px">Torna alla lobby</button>
+  </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // Apriamo il filo diretto con il server
     const socket = io();
-
-    // Scorciatoie per prendere gli elementi della pagina
     const $ = (id) => document.getElementById(id);
-    function mostra(schermata){
-      document.querySelectorAll('.schermata').forEach(s => s.classList.remove('attiva'));
-      $(schermata).classList.add('attiva');
+    function mostra(s){
+      document.querySelectorAll('.schermata').forEach(e => e.classList.remove('attiva'));
+      $(s).classList.add('attiva');
     }
 
-    let sonoHost = false;
+    /* === Stesse dimensioni del server === */
+    const COLONNE = 13, RIGHE = 11, TILE = 40, MURO = 1, CASSA = 2;
+    const tela = $('tela'), ctx = tela.getContext('2d');
+    tela.width = COLONNE * TILE; tela.height = RIGHE * TILE;
 
-    /* --- I PULSANTI MANDANO MESSAGGI AL SERVER --- */
-    $('btnCrea').onclick = () => {
-      socket.emit('creaPartita', $('campoNome').value.trim());
-    };
+    let sonoHost = false;
+    let statoCorrente = null;   // l'ultima fotografia ricevuta dal server
+
+    /* === Pulsanti del menu/lobby === */
+    $('btnCrea').onclick  = () => socket.emit('creaPartita', $('campoNome').value.trim());
     $('btnEntra').onclick = () => {
-      const codice = $('campoCodice').value.trim();
-      if(codice.length < 4){ $('errore').textContent = 'Inserisci un codice di 4 lettere'; return; }
-      socket.emit('entra', { codice, nome: $('campoNome').value.trim() });
+      const c = $('campoCodice').value.trim();
+      if(c.length < 4){ $('errore').textContent = 'Inserisci un codice di 4 lettere'; return; }
+      socket.emit('entra', { codice: c, nome: $('campoNome').value.trim() });
     };
     $('btnAvvia').onclick = () => socket.emit('avvia');
+    $('campoCodice').addEventListener('input', e => e.target.value = e.target.value.toUpperCase());
 
-    // mette in maiuscolo il codice mentre si scrive
-    $('campoCodice').addEventListener('input', e => {
-      e.target.value = e.target.value.toUpperCase();
-    });
+    /* === Risposte dal server === */
+    socket.on('partitaCreata', () => { sonoHost = true;  mostra('lobby'); });
+    socket.on('entrato',       () => { sonoHost = false; mostra('lobby'); });
+    socket.on('erroreEntrata', (m) => $('errore').textContent = m);
 
-    /* --- LE RISPOSTE CHE ARRIVANO DAL SERVER --- */
-    socket.on('partitaCreata', (codice) => { sonoHost = true;  mostra('lobby'); });
-    socket.on('entrato',       (codice) => { sonoHost = false; mostra('lobby'); });
-    socket.on('erroreEntrata', (msg)    => { $('errore').textContent = msg; });
-
-    // ogni volta che cambia la lobby, il server ci manda la lista aggiornata
     socket.on('lobby', ({ codice, giocatori }) => {
       $('mostraCodice').textContent = codice;
-      const lista = $('listaGiocatori');
-      lista.innerHTML = '';
-      giocatori.forEach(g => {
-        const riga = document.createElement('div');
-        riga.className = 'giocatore';
-        riga.innerHTML = `<span class="pallino"></span>${g.nome}` +
-                         (g.host ? `<span class="badgeHost">HOST</span>` : '');
-        lista.appendChild(riga);
+      const lista = $('listaGiocatori'); lista.innerHTML = '';
+      const colori = ['#41a6f6','#ff5d5d','#5ddf7a','#ffd454'];
+      giocatori.forEach((g, i) => {
+        const r = document.createElement('div');
+        r.className = 'giocatore';
+        r.innerHTML = `<span class="pallino" style="background:${colori[i%4]}"></span>${g.nome}` +
+                      (g.host ? `<span class="badgeHost">HOST</span>` : '');
+        lista.appendChild(r);
       });
-      // il tasto "Avvia" lo vede solo l'host, e solo se ci sono almeno 2 giocatori
       $('btnAvvia').style.display = sonoHost ? 'block' : 'none';
       $('attesa').style.display   = sonoHost ? 'none' : 'block';
       $('btnAvvia').disabled = giocatori.length < 2;
     });
 
-    socket.on('iniziata', () => mostra('gioco'));
+    socket.on('iniziata', () => { $('fineGioco').classList.remove('mostra'); mostra('gioco'); });
+    socket.on('stato', (s) => { statoCorrente = s; });   // salviamo, disegna il loop
+    socket.on('fine', ({ vincitore }) => {
+      $('esito').textContent = vincitore ? ('Ha vinto\n' + vincitore + '!') : 'Pareggio!';
+      $('fineGioco').classList.add('mostra');
+    });
+    $('tornaLobby').onclick = () => { $('fineGioco').classList.remove('mostra'); mostra('lobby'); };
+
+    /* === Controlli: mandiamo solo le intenzioni al server === */
+    function tastoDirezione(id, dir){
+      const t = $(id);
+      t.addEventListener('pointerdown', e => { e.preventDefault(); socket.emit('muovi', dir); });
+      const stop = () => socket.emit('muovi', null);
+      t.addEventListener('pointerup', stop);
+      t.addEventListener('pointerleave', stop);
+      t.addEventListener('pointercancel', stop);
+    }
+    tastoDirezione('su','su'); tastoDirezione('giu','giu');
+    tastoDirezione('sx','sx'); tastoDirezione('dx','dx');
+    $('bomba').addEventListener('pointerdown', e => { e.preventDefault(); socket.emit('bomba'); });
+
+    // tastiera (per provarlo sul PC)
+    document.addEventListener('keydown', e => {
+      if(e.key==='ArrowUp'||e.key==='w')    socket.emit('muovi','su');
+      if(e.key==='ArrowDown'||e.key==='s')  socket.emit('muovi','giu');
+      if(e.key==='ArrowLeft'||e.key==='a')  socket.emit('muovi','sx');
+      if(e.key==='ArrowRight'||e.key==='d') socket.emit('muovi','dx');
+      if(e.key===' '){ e.preventDefault(); socket.emit('bomba'); }
+    });
+    document.addEventListener('keyup', () => socket.emit('muovi', null));
+
+    /* === DISEGNO: ridisegna l'ultima fotografia ~60 volte al secondo === */
+    function col(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+    function riquadro(px,py,c,cTop,dim=TILE){
+      ctx.fillStyle=c; ctx.fillRect(px,py,dim,dim);
+      ctx.fillStyle=cTop; ctx.fillRect(px,py,dim,4); ctx.fillRect(px,py,4,dim);
+    }
+    function disegna(){
+      requestAnimationFrame(disegna);
+      const s = statoCorrente;
+      if(!s){ return; }
+      // pavimento, muri, casse
+      for(let y=0;y<RIGHE;y++) for(let x=0;x<COLONNE;x++){
+        const t=s.mappa[y][x], px=x*TILE, py=y*TILE;
+        if(t===MURO){ riquadro(px,py,col('--muro'),col('--muro-top')); }
+        else {
+          ctx.fillStyle=(x+y)%2?col('--erba'):col('--erba2'); ctx.fillRect(px,py,TILE,TILE);
+          if(t===CASSA) riquadro(px+3,py+3,col('--cassa'),col('--cassa-top'),TILE-6);
+        }
+      }
+      // bombe
+      for(const b of s.bombe){
+        const px=b.x*TILE+TILE/2, py=b.y*TILE+TILE/2;
+        ctx.fillStyle = Math.floor(b.tempo/150)%2===0 ? '#111' : '#333';
+        ctx.beginPath(); ctx.arc(px,py,TILE*0.32,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle=col('--accento'); ctx.fillRect(px-2,py-TILE*0.42,4,6);
+      }
+      // fiamme
+      for(const f of s.fiamme){
+        const px=f.x*TILE, py=f.y*TILE;
+        ctx.fillStyle=col('--fiamma2'); ctx.fillRect(px+2,py+2,TILE-4,TILE-4);
+        ctx.fillStyle=col('--fiamma');  ctx.fillRect(px+8,py+8,TILE-16,TILE-16);
+      }
+      // giocatori
+      for(const g of s.giocatori){
+        if(!g.vivo) continue;
+        const px=g.x*TILE, py=g.y*TILE;
+        riquadro(px+6,py+6,g.colore,'#ffffff55',TILE-12);
+        // un cerchietto bianco sotto il MIO giocatore, per riconoscermi
+        if(g.id===socket.id){ ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+          ctx.strokeRect(px+4,py+4,TILE-8,TILE-8); }
+        ctx.fillStyle='#fff'; ctx.fillRect(px+13,py+15,5,6); ctx.fillRect(px+22,py+15,5,6);
+        ctx.fillStyle='#15171f'; ctx.fillRect(px+15,py+17,3,4); ctx.fillRect(px+24,py+17,3,4);
+      }
+      // sono morto?
+      const io_ = s.giocatori.find(g => g.id===socket.id);
+      $('statoGioco').textContent = (io_ && !io_.vivo) ? 'Sei esploso! Guarda chi vince…' : '';
+    }
+    requestAnimationFrame(disegna);
   </script>
 </body>
 </html>

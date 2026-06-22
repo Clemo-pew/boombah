@@ -1,6 +1,6 @@
 {
   "name": "bomberman-online",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Bomberman multiplayer con codici sessione",
   "main": "server.js",
   "scripts": {
