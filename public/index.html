@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bomberman Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sfondo:#15171f; --pannello:#232634; --accento:#ef7d57;
+    --fiamma:#ffcd75; --testo:#f4f4f4; --player:#41a6f6;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  body{
+    background:var(--sfondo); color:var(--testo);
+    font-family:system-ui,-apple-system,sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:24px; user-select:none;
+  }
+  .schermata{ width:100%; max-width:380px; display:none; flex-direction:column; gap:18px; }
+  .schermata.attiva{ display:flex; }
+
+  h1{ font-family:"Press Start 2P",monospace; font-size:18px; color:var(--accento);
+      text-align:center; line-height:1.7; margin-bottom:8px; }
+
+  input{
+    width:100%; padding:16px; font-size:16px; text-align:center;
+    background:var(--pannello); border:2px solid #3a3f54; border-radius:12px;
+    color:var(--testo); outline:none;
+  }
+  input:focus{ border-color:var(--accento); }
+  #campoCodice{ font-family:"Press Start 2P",monospace; letter-spacing:6px; text-transform:uppercase; }
+
+  button{
+    width:100%; padding:16px; font-size:15px; font-weight:600;
+    border:none; border-radius:12px; color:#fff; background:#3a3f54;
+    box-shadow:0 4px 0 #20232f; transition:transform .05s, box-shadow .05s;
+  }
+  button:active{ transform:translateY(3px); box-shadow:0 1px 0 #20232f; }
+  button.primario{ background:var(--accento); color:#2a1206; box-shadow:0 4px 0 #b85535; }
+  button.primario:active{ box-shadow:0 1px 0 #b85535; }
+  button:disabled{ opacity:.4; box-shadow:none; }
+
+  .separatore{ text-align:center; opacity:.4; font-size:13px; }
+  .errore{ color:#ff8080; text-align:center; font-size:14px; min-height:18px; }
+
+  /* --- Lobby --- */
+  .codiceGrande{
+    font-family:"Press Start 2P",monospace; font-size:40px; letter-spacing:8px;
+    color:var(--fiamma); text-align:center; padding:18px;
+    background:var(--pannello); border-radius:14px;
+  }
+  .etichetta{ text-align:center; opacity:.6; font-size:13px; }
+  .listaGiocatori{ display:flex; flex-direction:column; gap:10px; }
+  .giocatore{
+    display:flex; align-items:center; gap:12px; padding:14px 16px;
+    background:var(--pannello); border-radius:12px; font-size:15px;
+  }
+  .pallino{ width:14px; height:14px; border-radius:50%; background:var(--player); flex:none; }
+  .badgeHost{ margin-left:auto; font-size:11px; background:var(--accento); color:#2a1206;
+              padding:3px 8px; border-radius:6px; font-weight:700; }
+  .attesa{ text-align:center; opacity:.6; font-size:14px; }
+</style>
+</head>
+<body>
+
+  <!-- SCHERMATA 1: MENU -->
+  <div class="schermata attiva" id="menu">
+    <h1>BOMBER<br>MAN</h1>
+    <input id="campoNome" placeholder="Il tuo nome" maxlength="12" value="Giocatore">
+    <button class="primario" id="btnCrea">Crea partita</button>
+    <div class="separatore">— oppure —</div>
+    <input id="campoCodice" placeholder="CODICE" maxlength="4">
+    <button id="btnEntra">Entra con il codice</button>
+    <div class="errore" id="errore"></div>
+  </div>
+
+  <!-- SCHERMATA 2: LOBBY -->
+  <div class="schermata" id="lobby">
+    <div class="etichetta">Codice della partita</div>
+    <div class="codiceGrande" id="mostraCodice">----</div>
+    <div class="etichetta">Condividi questo codice con gli amici</div>
+    <div class="listaGiocatori" id="listaGiocatori"></div>
+    <button class="primario" id="btnAvvia">Avvia partita</button>
+    <div class="attesa" id="attesa">In attesa dell'host…</div>
+  </div>
+
+  <!-- SCHERMATA 3: GIOCO (la riempiremo al passo 2) -->
+  <div class="schermata" id="gioco">
+    <h1>VIA!</h1>
+    <p class="attesa">La partita è iniziata.<br>Qui andrà il gioco vero e proprio:<br>lo costruiamo al prossimo passo!</p>
+  </div>
+
+  <!-- Questa libreria viene fornita in automatico dal server Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Apriamo il filo diretto con il server
+    const socket = io();
+
+    // Scorciatoie per prendere gli elementi della pagina
+    const $ = (id) => document.getElementById(id);
+    function mostra(schermata){
+      document.querySelectorAll('.schermata').forEach(s => s.classList.remove('attiva'));
+      $(schermata).classList.add('attiva');
+    }
+
+    let sonoHost = false;
+
+    /* --- I PULSANTI MANDANO MESSAGGI AL SERVER --- */
+    $('btnCrea').onclick = () => {
+      socket.emit('creaPartita', $('campoNome').value.trim());
+    };
+    $('btnEntra').onclick = () => {
+      const codice = $('campoCodice').value.trim();
+      if(codice.length < 4){ $('errore').textContent = 'Inserisci un codice di 4 lettere'; return; }
+      socket.emit('entra', { codice, nome: $('campoNome').value.trim() });
+    };
+    $('btnAvvia').onclick = () => socket.emit('avvia');
+
+    // mette in maiuscolo il codice mentre si scrive
+    $('campoCodice').addEventListener('input', e => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+
+    /* --- LE RISPOSTE CHE ARRIVANO DAL SERVER --- */
+    socket.on('partitaCreata', (codice) => { sonoHost = true;  mostra('lobby'); });
+    socket.on('entrato',       (codice) => { sonoHost = false; mostra('lobby'); });
+    socket.on('erroreEntrata', (msg)    => { $('errore').textContent = msg; });
+
+    // ogni volta che cambia la lobby, il server ci manda la lista aggiornata
+    socket.on('lobby', ({ codice, giocatori }) => {
+      $('mostraCodice').textContent = codice;
+      const lista = $('listaGiocatori');
+      lista.innerHTML = '';
+      giocatori.forEach(g => {
+        const riga = document.createElement('div');
+        riga.className = 'giocatore';
+        riga.innerHTML = `<span class="pallino"></span>${g.nome}` +
+                         (g.host ? `<span class="badgeHost">HOST</span>` : '');
+        lista.appendChild(riga);
+      });
+      // il tasto "Avvia" lo vede solo l'host, e solo se ci sono almeno 2 giocatori
+      $('btnAvvia').style.display = sonoHost ? 'block' : 'none';
+      $('attesa').style.display   = sonoHost ? 'none' : 'block';
+      $('btnAvvia').disabled = giocatori.length < 2;
+    });
+
+    socket.on('iniziata', () => mostra('gioco'));
+  </script>
+</body>
+</html>
