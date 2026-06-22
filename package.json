@@ -1,11 +1,9 @@
 {
   "name": "bomberman-online",
-  "version": "2.0.0",
-  "description": "Bomberman multiplayer con codici sessione",
+  "version": "3.0.0",
+  "description": "Bomberman multiplayer: codici sessione, opzioni, power-up, serie al meglio di 3",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "scripts": { "start": "node server.js" },
   "dependencies": {
     "express": "^4.19.2",
     "socket.io": "^4.7.5"
