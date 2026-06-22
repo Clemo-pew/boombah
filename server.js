@@ -188,25 +188,18 @@ function piazzaBomba(stanza, id){
 
 function esplodi(stanza, bomba){
   const colpite = [{x:bomba.x, y:bomba.y}];
+  const casseRotte = [];                 // celle dove abbiamo appena distrutto una cassa
   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
     for(let p=1; p<=bomba.raggio; p++){
       const x=bomba.x+dx*p, y=bomba.y+dy*p;
       if(stanza.mappa[y][x]===MURO) break;
       colpite.push({x,y});
-      if(stanza.mappa[y][x]===CASSA){
-        stanza.mappa[y][x]=VUOTO;
-        // la cassa può lasciare un power-up
-        if(stanza.opzioni.powerup && Math.random()<PROB_POWERUP){
-          const tipo = TIPI_POWERUP[Math.floor(Math.random()*TIPI_POWERUP.length)];
-          stanza.powerups.push({ x, y, tipo });
-        }
-        break;
-      }
+      if(stanza.mappa[y][x]===CASSA){ stanza.mappa[y][x]=VUOTO; casseRotte.push({x,y}); break; }
     }
   }
   for(const c of colpite){
     stanza.fiamme.push({x:c.x, y:c.y, tempo:TEMPO_FIAMMA});
-    // un power-up colpito dal fuoco viene distrutto
+    // un power-up GIÀ presente, colpito dal fuoco, viene distrutto
     const pi = stanza.powerups.findIndex(p=>p.x===c.x && p.y===c.y);
     if(pi>=0) stanza.powerups.splice(pi,1);
     // reazione a catena
@@ -216,6 +209,16 @@ function esplodi(stanza, bomba){
     for(const id in stanza.giocatori){
       const g = stanza.giocatori[id];
       if(g.vivo && g.x===c.x && g.y===c.y) g.vivo=false;
+    }
+  }
+  // SOLO ORA creiamo i power-up dalle casse distrutte, così la fiamma di
+  // QUESTA stessa esplosione non li cancella subito (era questo il bug).
+  if(stanza.opzioni.powerup){
+    for(const c of casseRotte){
+      if(Math.random()<PROB_POWERUP){
+        const tipo = TIPI_POWERUP[Math.floor(Math.random()*TIPI_POWERUP.length)];
+        stanza.powerups.push({ x:c.x, y:c.y, tipo });
+      }
     }
   }
 }

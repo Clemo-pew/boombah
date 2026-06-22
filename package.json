@@ -3,9 +3,12 @@
   "version": "3.0.0",
   "description": "Bomberman multiplayer: codici sessione, opzioni, power-up, serie al meglio di 3",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "express": "^4.19.2",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.8.3"
   }
 }
