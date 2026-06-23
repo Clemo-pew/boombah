@@ -84,6 +84,7 @@
     <h1>CLEMO GOES<br>BOOM</h1>
     <input id="campoNome" placeholder="Il tuo nome" maxlength="12" value="Giocatore">
     <button class="primario" id="btnCrea">Crea partita</button>
+    <button id="btnSolo">Gioca da solo (vs 3 bot)</button>
     <div class="separatore">— oppure —</div>
     <input id="campoCodice" placeholder="CODICE" maxlength="4">
     <button id="btnEntra">Entra con il codice</button>
@@ -92,8 +93,10 @@
 
   <!-- LOBBY -->
   <div class="schermata" id="lobby">
-    <div class="etichetta">Codice della partita</div>
-    <div class="codiceGrande" id="mostraCodice">----</div>
+    <div id="zonaCodice">
+      <div class="etichetta">Codice della partita</div>
+      <div class="codiceGrande" id="mostraCodice">----</div>
+    </div>
     <div class="etichetta" id="contaGiocatori">Giocatori</div>
     <div class="listaGiocatori" id="listaGiocatori"></div>
 
@@ -153,6 +156,7 @@
 
     /* --- menu / lobby --- */
     $('btnCrea').onclick  = ()=>socket.emit('creaPartita', $('campoNome').value.trim());
+    $('btnSolo').onclick  = ()=>socket.emit('creaSingolo', $('campoNome').value.trim());
     $('btnEntra').onclick = ()=>{
       const c=$('campoCodice').value.trim();
       if(c.length<4){ $('errore').textContent='Inserisci un codice di 4 lettere'; return; }
@@ -169,10 +173,12 @@
     socket.on('entrato',       ()=>{ sonoHost=false; mostra('lobby'); });
     socket.on('erroreEntrata', (m)=>$('errore').textContent=m);
 
-    socket.on('lobby', ({codice, giocatori, opzioni})=>{
+    socket.on('lobby', ({codice, giocatori, opzioni, singolo})=>{
       opzioniCorrenti = opzioni;
       $('mostraCodice').textContent = codice;
-      $('contaGiocatori').textContent = 'Giocatori ' + giocatori.length + '/4';
+      // in solitaria il codice non serve: lo nascondiamo
+      $('zonaCodice').style.display = singolo ? 'none' : 'block';
+      $('contaGiocatori').textContent = singolo ? 'Tu + 3 bot' : ('Giocatori ' + giocatori.length + '/4');
       const lista=$('listaGiocatori'); lista.innerHTML='';
       const colori=['#41a6f6','#ff5d5d','#5ddf7a','#ffd454'];
       giocatori.forEach((g,i)=>{
