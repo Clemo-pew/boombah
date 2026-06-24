@@ -1,6 +1,6 @@
 {
   "name": "bomberman-online",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Bomberman multiplayer: codici sessione, opzioni, power-up, serie, modalità in solitaria con bot",
   "main": "server.js",
   "scripts": {

@@ -1,0 +1,19 @@
+COME AGGIUNGERE UN PERSONAGGIO CON IMMAGINE
+===========================================
+
+1) Prepara un PNG quadrato con SFONDO TRASPARENTE (pixel art, es. 16x16 / 24x24 / 32x32).
+
+2) Salvalo in questa cartella (public/personaggi/) con il nome del personaggio, in minuscolo.
+   Esempi gia' previsti dal gioco:
+     classico.png   robot.png   gatto.png   fantasma.png   rana.png   ninja.png
+   Se metti uno di questi file, sostituisce automaticamente la sagoma disegnata.
+
+3) Per AGGIUNGERE un personaggio NUOVO (es. "viaggiatore"):
+   a) metti qui  viaggiatore.png
+   b) in public/index.html, aggiungi 'viaggiatore' alla lista:
+        const SKINS=['classico','robot','gatto','fantasma','rana','ninja','viaggiatore'];
+   c) in server.js, aggiungi 'viaggiatore' alla lista:
+        const SKINS_OK = [... , 'viaggiatore'];
+   d) ricarica i file su GitHub: Render ripubblica da solo.
+
+Se il PNG non c'e', il gioco usa una sagoma di ripiego: niente si rompe.

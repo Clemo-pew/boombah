@@ -30,6 +30,11 @@
   button:disabled{ opacity:.4; box-shadow:none; }
   .separatore{ text-align:center; opacity:.4; font-size:13px; }
   .errore{ color:#ff8080; text-align:center; font-size:14px; min-height:18px; }
+  #selettore{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .skinOpt{ width:auto; padding:4px; background:var(--pannello); border:2px solid transparent;
+            border-radius:12px; box-shadow:none; }
+  .skinOpt.sel{ border-color:var(--accento); }
+  .skinPrev{ display:block; }
   .codiceGrande{ font-family:"Press Start 2P",monospace; font-size:36px; letter-spacing:8px;
                  color:var(--fiamma); text-align:center; padding:14px; background:var(--pannello); border-radius:14px; }
   .etichetta{ text-align:center; opacity:.6; font-size:13px; }
@@ -81,8 +86,10 @@
 
   <!-- MENU -->
   <div class="schermata attiva" id="menu">
-    <h1>CLEMO GOES<br>BOOM</h1>
+    <h1>BOMBER<br>MAN</h1>
     <input id="campoNome" placeholder="Il tuo nome" maxlength="12" value="Giocatore">
+    <div class="etichetta">Scegli il personaggio</div>
+    <div id="selettore"></div>
     <button class="primario" id="btnCrea">Crea partita</button>
     <button id="btnSolo">Gioca da solo (vs 3 bot)</button>
     <div class="separatore">— oppure —</div>
@@ -153,14 +160,26 @@
 
     let sonoHost=false, statoCorrente=null;
     let opzioniCorrenti={ powerup:false, bestOf3:false };
+    const SKINS=['classico','robot','gatto','fantasma','rana','ninja'];
+    let skinScelto='classico';
+
+    // IMMAGINI PERSONAGGI (opzionale): se metti il file public/personaggi/<nome>.png
+    // viene usato automaticamente al posto della sagoma disegnata. Niente file = sagoma.
+    const IMG_PERS = {};
+    SKINS.forEach(k=>{
+      const img = new Image();
+      img.onload  = ()=>{ IMG_PERS[k]=img; if(typeof costruisciSelettore==='function') costruisciSelettore(); };
+      img.onerror = ()=>{};   // nessuna immagine: si continua con la sagoma
+      img.src = '/personaggi/' + k + '.png';
+    });
 
     /* --- menu / lobby --- */
-    $('btnCrea').onclick  = ()=>socket.emit('creaPartita', $('campoNome').value.trim());
-    $('btnSolo').onclick  = ()=>socket.emit('creaSingolo', $('campoNome').value.trim());
+    $('btnCrea').onclick  = ()=>socket.emit('creaPartita', { nome:$('campoNome').value.trim(), skin:skinScelto });
+    $('btnSolo').onclick  = ()=>socket.emit('creaSingolo', { nome:$('campoNome').value.trim(), skin:skinScelto });
     $('btnEntra').onclick = ()=>{
       const c=$('campoCodice').value.trim();
       if(c.length<4){ $('errore').textContent='Inserisci un codice di 4 lettere'; return; }
-      socket.emit('entra',{ codice:c, nome:$('campoNome').value.trim() });
+      socket.emit('entra',{ codice:c, nome:$('campoNome').value.trim(), skin:skinScelto });
     };
     $('btnAvvia').onclick = ()=>socket.emit('avvia');
     $('campoCodice').addEventListener('input', e=>e.target.value=e.target.value.toUpperCase());
@@ -263,6 +282,66 @@
     function col(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
     function riquadro(px,py,c,cTop,dim=TILE){ ctx.fillStyle=c; ctx.fillRect(px,py,dim,dim);
       ctx.fillStyle=cTop; ctx.fillRect(px,py,dim,4); ctx.fillRect(px,py,4,dim); }
+
+    // disegna un personaggio dentro una casella (px,py = angolo della casella)
+    function disegnaPersonaggio(ct, skin, px, py, colore){
+      // se c'è un PNG per questo personaggio, lo disegno nitido e basta
+      const im = IMG_PERS[skin];
+      if(im){ ct.imageSmoothingEnabled=false; ct.drawImage(im, px+4, py+2, 32, 36); return; }
+      const luce=(x,y,w,h)=>{ ct.fillStyle='rgba(255,255,255,0.30)'; ct.fillRect(x,y,w,h); };
+      const occhi=(ax,ay,w,h,pw)=>{ ct.fillStyle='#fff'; ct.fillRect(px+ax,py+ay,w,h); ct.fillRect(px+40-ax-w,py+ay,w,h);
+        ct.fillStyle='#15171f'; ct.fillRect(px+ax+w-pw,py+ay+1,pw,h-1); ct.fillRect(px+40-ax-pw,py+ay+1,pw,h-1); };
+      ct.lineJoin='round';
+      if(skin==='robot'){
+        ct.fillStyle='#9aa3b8'; ct.fillRect(px+19,py+3,2,5); ct.fillStyle='#ff5d5d'; ct.fillRect(px+18,py+1,4,3);
+        ct.fillStyle=colore; ct.fillRect(px+7,py+8,26,26); luce(px+7,py+8,26,4);
+        ct.fillStyle='#15171f'; ct.fillRect(px+10,py+14,20,11);
+        ct.fillStyle='#7fffd4'; ct.fillRect(px+13,py+17,5,4); ct.fillRect(px+22,py+17,5,4);
+      } else if(skin==='gatto'){
+        ct.fillStyle=colore;
+        ct.beginPath(); ct.moveTo(px+9,py+13); ct.lineTo(px+12,py+4); ct.lineTo(px+17,py+13); ct.fill();
+        ct.beginPath(); ct.moveTo(px+23,py+13); ct.lineTo(px+28,py+4); ct.lineTo(px+31,py+13); ct.fill();
+        ct.fillRect(px+7,py+11,26,23); luce(px+7,py+11,26,3);
+        ct.fillStyle='#fff'; ct.fillRect(px+12,py+18,6,6); ct.fillRect(px+22,py+18,6,6);
+        ct.fillStyle='#15171f'; ct.fillRect(px+14,py+19,2,5); ct.fillRect(px+24,py+19,2,5); ct.fillRect(px+19,py+25,2,2);
+        ct.strokeStyle='rgba(255,255,255,0.6)'; ct.lineWidth=1;
+        ct.beginPath(); ct.moveTo(px+8,py+27); ct.lineTo(px+15,py+28); ct.moveTo(px+25,py+28); ct.lineTo(px+32,py+27); ct.stroke();
+      } else if(skin==='fantasma'){
+        ct.fillStyle=colore; ct.beginPath(); ct.arc(px+20,py+19,13,Math.PI,0); ct.lineTo(px+33,py+33);
+        ct.lineTo(px+28,py+29); ct.lineTo(px+24,py+33); ct.lineTo(px+20,py+29); ct.lineTo(px+16,py+33); ct.lineTo(px+12,py+29); ct.lineTo(px+7,py+33);
+        ct.closePath(); ct.fill();
+        ct.fillStyle='#fff'; ct.beginPath(); ct.arc(px+15,py+18,3.5,0,7); ct.arc(px+25,py+18,3.5,0,7); ct.fill();
+        ct.fillStyle='#15171f'; ct.beginPath(); ct.arc(px+16,py+19,1.6,0,7); ct.arc(px+26,py+19,1.6,0,7); ct.fill();
+      } else if(skin==='rana'){
+        ct.fillStyle=colore; ct.fillRect(px+7,py+15,26,19); luce(px+7,py+15,26,3);
+        ct.beginPath(); ct.arc(px+13,py+13,5,0,7); ct.arc(px+27,py+13,5,0,7); ct.fill();
+        ct.fillStyle='#fff'; ct.beginPath(); ct.arc(px+13,py+12,3,0,7); ct.arc(px+27,py+12,3,0,7); ct.fill();
+        ct.fillStyle='#15171f'; ct.beginPath(); ct.arc(px+13,py+12,1.4,0,7); ct.arc(px+27,py+12,1.4,0,7); ct.fill();
+        ct.strokeStyle='#15171f'; ct.lineWidth=1.5; ct.beginPath(); ct.moveTo(px+12,py+28); ct.lineTo(px+28,py+28); ct.stroke();
+      } else if(skin==='ninja'){
+        ct.fillStyle=colore; ct.fillRect(px+7,py+7,26,27); luce(px+7,py+7,26,3);
+        ct.fillStyle='#15171f'; ct.fillRect(px+7,py+15,26,8);
+        ct.fillStyle='#fff'; ct.fillRect(px+12,py+18,5,3); ct.fillRect(px+23,py+18,5,3);
+        ct.fillStyle='#15171f'; ct.fillRect(px+31,py+16,4,2);
+      } else { // classico
+        ct.fillStyle=colore; ct.fillRect(px+6,py+6,28,28); luce(px+6,py+6,28,4);
+        occhi(13,15,5,6,2);
+      }
+    }
+
+    // costruisce la fila di personaggi selezionabili nel menu
+    function costruisciSelettore(){
+      const cont=$('selettore'); cont.innerHTML='';
+      SKINS.forEach(k=>{
+        const b=document.createElement('button'); b.className='skinOpt'; b.dataset.k=k;
+        const c=document.createElement('canvas'); c.width=44; c.height=44; c.className='skinPrev';
+        b.appendChild(c); cont.appendChild(b);
+        disegnaPersonaggio(c.getContext('2d'), k, 2, 2, '#41a6f6');
+        b.onclick=()=>{ skinScelto=k; aggiornaSelettore(); };
+      });
+      aggiornaSelettore();
+    }
+    function aggiornaSelettore(){ document.querySelectorAll('.skinOpt').forEach(b=>b.classList.toggle('sel', b.dataset.k===skinScelto)); }
     const COLORE_PU={ bomba:'#222', fuoco:'#ef7d57', velocita:'#41a6f6' };
     const LETTERA_PU={ bomba:'B', fuoco:'F', velocita:'V' };
 
@@ -298,14 +377,13 @@
       for(const g of s.giocatori){
         if(!g.vivo) continue;
         const px=g.x*TILE, py=g.y*TILE;
-        riquadro(px+6,py+6,g.colore,'#ffffff55',TILE-12);
         if(g.id===socket.id){ ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.strokeRect(px+4,py+4,TILE-8,TILE-8); }
-        ctx.fillStyle='#fff'; ctx.fillRect(px+13,py+15,5,6); ctx.fillRect(px+22,py+15,5,6);
-        ctx.fillStyle='#15171f'; ctx.fillRect(px+15,py+17,3,4); ctx.fillRect(px+24,py+17,3,4);
+        disegnaPersonaggio(ctx, g.skin||'classico', px, py, g.colore);
       }
       const me=s.giocatori.find(g=>g.id===socket.id);
       $('statoGioco').textContent = (me && !me.vivo) ? 'Sei esploso! Guarda chi vince…' : '';
     }
+    costruisciSelettore();
     requestAnimationFrame(disegna);
   </script>
 </body>

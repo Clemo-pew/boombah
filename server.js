@@ -32,6 +32,9 @@ const MAX_ROUND_MS = 90000;   // durata massima di un round (rete di sicurezza a
 const ANGOLI = [ {x:1,y:1}, {x:COLONNE-2,y:1}, {x:1,y:RIGHE-2}, {x:COLONNE-2,y:RIGHE-2} ];
 const COLORI = ['#41a6f6', '#ff5d5d', '#5ddf7a', '#ffd454'];
 const DIRS = [['su',0,-1],['giu',0,1],['sx',-1,0],['dx',1,0]];
+// personaggi disponibili (devono combaciare con quelli disegnati nel client)
+const SKINS_OK = ['classico','robot','gatto','fantasma','rana','ninja'];
+function validaSkin(s){ return SKINS_OK.includes(s) ? s : 'classico'; }
 
 const stanze = {};
 
@@ -287,7 +290,7 @@ function passoVersoObiettivo(stanza,g,danger){
 function fotografia(stanza){
   return {
     mappa: stanza.mappa,
-    giocatori: Object.entries(stanza.giocatori).map(([id,g])=>({ id, nome:g.nome, x:g.x, y:g.y, colore:g.colore, vivo:g.vivo, bot:!!g.bot })),
+    giocatori: Object.entries(stanza.giocatori).map(([id,g])=>({ id, nome:g.nome, x:g.x, y:g.y, colore:g.colore, vivo:g.vivo, bot:!!g.bot, skin:g.skin||'classico' })),
     bombe: stanza.bombe.map(b=>({x:b.x,y:b.y,tempo:b.tempo})),
     fiamme: stanza.fiamme.map(f=>({x:f.x,y:f.y})),
     powerups: stanza.powerups.map(p=>({x:p.x,y:p.y,tipo:p.tipo}))
@@ -300,32 +303,32 @@ function classifica(stanza){
 /* ===================== CONNESSIONI ===================== */
 io.on('connection', (socket)=>{
 
-  socket.on('creaPartita', (nome)=>{
+  socket.on('creaPartita', (dati)=>{
     const codice=generaCodice();
     stanze[codice]={ codice, hostId:socket.id, giocatori:{}, stato:'lobby', loop:null, opzioni:{powerup:false,bestOf3:false}, punteggi:{}, singolo:false };
-    stanze[codice].giocatori[socket.id]={ nome:nome||'Host' };
+    stanze[codice].giocatori[socket.id]={ nome:(dati&&dati.nome)||'Host', skin:validaSkin(dati&&dati.skin) };
     socket.join(codice); socket.data.codice=codice;
     socket.emit('partitaCreata', codice); inviaLobby(codice);
   });
 
   // NUOVO: modalità in solitaria con 3 bot
-  socket.on('creaSingolo', (nome)=>{
+  socket.on('creaSingolo', (dati)=>{
     const codice=generaCodice();
     stanze[codice]={ codice, hostId:socket.id, giocatori:{}, stato:'lobby', loop:null, opzioni:{powerup:false,bestOf3:false}, punteggi:{}, singolo:true };
-    stanze[codice].giocatori[socket.id]={ nome:nome||'Tu' };
-    for(let i=1;i<=3;i++) stanze[codice].giocatori['bot'+i]={ nome:'Bot '+i, bot:true };
+    stanze[codice].giocatori[socket.id]={ nome:(dati&&dati.nome)||'Tu', skin:validaSkin(dati&&dati.skin) };
+    for(let i=1;i<=3;i++) stanze[codice].giocatori['bot'+i]={ nome:'Bot '+i, bot:true, skin:SKINS_OK[Math.floor(Math.random()*SKINS_OK.length)] };
     socket.join(codice); socket.data.codice=codice;
     socket.emit('partitaCreata', codice); inviaLobby(codice);
   });
 
-  socket.on('entra', ({codice,nome})=>{
+  socket.on('entra', ({codice,nome,skin})=>{
     codice=(codice||'').toUpperCase();
     const s=stanze[codice];
     if(!s){ socket.emit('erroreEntrata','Codice non valido'); return; }
     if(s.singolo){ socket.emit('erroreEntrata','Partita in solitaria'); return; }
     if(s.stato!=='lobby'){ socket.emit('erroreEntrata','La partita è già iniziata'); return; }
     if(Object.keys(s.giocatori).length>=4){ socket.emit('erroreEntrata','La stanza è piena (4 max)'); return; }
-    s.giocatori[socket.id]={ nome:nome||'Giocatore' };
+    s.giocatori[socket.id]={ nome:nome||'Giocatore', skin:validaSkin(skin) };
     socket.join(codice); socket.data.codice=codice;
     socket.emit('entrato', codice); inviaLobby(codice);
   });
